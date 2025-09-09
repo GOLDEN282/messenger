@@ -1,0 +1,16 @@
+messenger-backend/
+├── docker-compose.yml
+├── Dockerfile
+├── init.sql
+├── package.json
+├── src/
+│   ├── index.js
+│   ├── db.js
+│   ├── middleware/
+│   │   └── auth.js
+│   ├── models/
+│   │   └── chats.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   └── chats.js
+│   ├── sockets.js

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini Messenger</title>
+<style>
+  body { font-family: Arial; max-width: 600px; margin: 20px auto; }
+  input, button { padding: 8px; margin: 4px; }
+  #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+</style>
+</head>
+<body>
+
+<h2>Mini Messenger</h2>
+
+<div id="auth">
+  <h3>Register / Login</h3>
+  <input id="username" placeholder="Username">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="register()">Register</button>
+  <button onclick="login()">Login</button>
+</div>
+
+<div id="chat" style="display:none;">
+  <h3>Chat</h3>
+  <div id="messages"></div>
+  <input id="messageInput" placeholder="Type message">
+  <button onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+let token = "";
+
+async function register() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch("http://localhost:3000/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+  alert(JSON.stringify(data));
+}
+
+async function login() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch("http://localhost:3000/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+
+  if (data.token) {
+    token = data.token;
+    document.getElementById("auth").style.display = "none";
+    document.getElementById("chat").style.display = "block";
+    loadMessages();
+  } else {
+    alert(JSON.stringify(data));
+  }
+}
+
+async function sendMessage() {
+  const message = document.getElementById("messageInput").value;
+  await fetch("http://localhost:3000/messages/send", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ message })
+  });
+  document.getElementById("messageInput").value = "";
+  loadMessages();
+}
+
+async function loadMessages() {
+  const res = await fetch("http://localhost:3000/messages/all", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const data = await res.json();
+
+  const messagesDiv = document.getElementById("messages");
+  messagesDiv.innerHTML = "";
+  data.forEach(msg => {
+    const div = document.createElement("div");
+    div.textContent = `${msg.username}: ${msg.message} (${new Date(msg.created_at).toLocaleTimeString()})`;
+    messagesDiv.appendChild(div);
+  });
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Обновление сообщений каждые 3 сек
+setInterval(() => { if(token) loadMessages(); }, 3000);
+</script>
+
+</body>
+</html>
